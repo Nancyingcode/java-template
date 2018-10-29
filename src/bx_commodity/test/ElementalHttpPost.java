@@ -37,6 +37,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import bx_commodity.test.Print;
+import bx_commodity.test.head.Head1;
 import bx_commodity.test.CityVo;
 import bx_commodity.test.Config;
 import bx_commodity.test.CountryVo;
@@ -48,7 +49,7 @@ import bx_commodity.test.BreakfastTypeVo;
 */
 public class ElementalHttpPost {
 	Print prt = new Print("ElementalHttpPost");
-	private JSONObject parseResToJSON(String url,String listName) throws UnknownHostException, IOException, HttpException{
+	private JSONObject parseResToJSON(String url,String listName,Object header) throws UnknownHostException, IOException, HttpException{
 		JSONObject result = null;
 		HttpProcessor httpproc = HttpProcessorBuilder.create()
 		           .add(new RequestContent())
@@ -60,17 +61,17 @@ public class ElementalHttpPost {
 
 		       HttpCoreContext coreContext = HttpCoreContext.create();
 		       HttpHost host = new HttpHost(Config.HOST, Config.Port);
-		       
-		       coreContext.setTargetHost(host);
-		       prt.println("<< Response: " + host.getPort());
+			   coreContext.setTargetHost(host);
+			   prt.println("<< Response: " + host.getPort());
+			   JSONObject obj = new JSONObject();
+			   obj.put("header", header);
 		       DefaultBHttpClientConnection conn = new DefaultBHttpClientConnection(8 * 1024);
-		       ConnectionReuseStrategy connStrategy = DefaultConnectionReuseStrategy.INSTANCE;
+			   ConnectionReuseStrategy connStrategy = DefaultConnectionReuseStrategy.INSTANCE;
 		       try {
 		           HttpEntity requestBodies = 
 		                   new StringEntity(
-		                		   RequestBuilder.des(listName),
-		                           ContentType.create("text/plain", Consts.UTF_8));
-		           
+							   obj.toJSONString(),
+								ContentType.create("application/json", Consts.UTF_8));
 		               if (!conn.isOpen()) {
 		                   Socket socket = new Socket(host.getHostName(), Config.Port);
 		                   conn.bind(socket);
@@ -125,8 +126,11 @@ public class ElementalHttpPost {
 	 */
 	public void getCity(String api,String listName){
 		try{
+			Head1 header = new Head1();
+			header.setClientID("");
+			header.setLicensekey("");
 			Connection conn = Conn.create();
-			JSONObject res = this.parseResToJSON(api,listName);
+			JSONObject res = this.parseResToJSON(api,listName,header);
 			JSONArray data = (JSONArray)res.get("data");
 			List<CityVo> cityVos = JSON.parseArray(data.toJSONString(), CityVo.class);
 			Iterator<CityVo> iterator = cityVos.iterator();
